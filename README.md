@@ -1,8 +1,6 @@
 # Rack::AccessLog
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rack/access_log`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This is a middleware for ruby / rack based webservice access logging. The implementation doesn't
 
 ## Installation
 
@@ -22,13 +20,42 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+#### First we need a logger that can accept and handle hash messages.
 
-## Development
+You can use the ruby build in with "custom" formatter.
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+require 'json'
+require 'logger'
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+json_logger = Logger.new(STDOUT)
+json_logger.formatter = proc do |severity, datetime, progname, msg|
+  JSON.dump(msg) + "\n"
+end
+```
+
+Or you can use logger implementations such as [TwP/logging](https://github.com/TwP/logging) gem
+
+```ruby
+require 'logging'
+
+json_logger = Logging.logger["AccessLog"]
+appender = Logging.appenders.stdout(:layout => Logging.layouts.json)
+json_logger.add_appenders(appender)
+```
+
+#### Than use it in our middleware stack
+##### config.ru
+
+```ruby
+require 'rack/access_log'
+use Rack::AccessLog, json_logger
+
+require 'rack/response'
+run proc{|env| Rack::Response.new.finish }
+```
+
+That's all Folks!
 
 ## Contributing
 
