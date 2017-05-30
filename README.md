@@ -1,6 +1,7 @@
 # Rack::AccessLog
 
-This is a middleware for ruby / rack based webservice access logging. The implementation doesn't
+This is a middleware for ruby / rack based webservice access logging.
+The implementation doesn't depend on any webframework or monkey patch.
 
 ## Installation
 
