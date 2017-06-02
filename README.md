@@ -1,5 +1,7 @@
 # Rack::AccessLog
 
+[![Build Status](https://travis-ci.org/emartech/rack-access_log.svg?branch=master)](https://travis-ci.org/emartech/rack-access_log)
+
 This is a middleware for ruby / rack based webservice access logging.
 The implementation doesn't depend on any webframework or monkey patch.
 
