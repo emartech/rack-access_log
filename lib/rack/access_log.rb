@@ -11,24 +11,30 @@ module Rack
     end
 
     def call(env)
+      message_base = create_log_message_base(env)
       status, header, body_lines, realtime = next_middleware_call_with_benchmarking(env)
-      @logger.info(create_log_message(env, status, realtime)) if tracked?(env)
+      @logger.info(message_base.merge(statistics_from(status, realtime))) if tracked?(message_base[:request_path])
       [status, header, body_lines]
     end
 
     private
 
-    def tracked?(env)
-      !@exclude_paths.include?(env[Rack::PATH_INFO])
+    def tracked?(path_info)
+      !@exclude_paths.include?(path_info)
     end
 
-    def create_log_message(env, status, realtime)
+    def create_log_message_base(env)
       {
-        execution_time_sec: realtime,
         remote_ip: remote_ip_by(env),
-        request_method: env[Rack::REQUEST_METHOD],
         request_path: env[Rack::PATH_INFO],
         query_string: env[Rack::QUERY_STRING],
+        request_method: env[Rack::REQUEST_METHOD]
+      }
+    end
+
+    def statistics_from(status, realtime)
+      {
+        execution_time_sec: realtime,
         response_status_code: status.to_i
       }
     end

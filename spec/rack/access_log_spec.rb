@@ -1,16 +1,17 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Rack::AccessLog do
   subject(:middleware) { described_class.new(next_middleware, logger, middleware_config) }
 
-  it "has a version number" do
+  it 'has a version number' do
     expect(Rack::AccessLog::VERSION).not_to be nil
   end
 
+  let(:next_middleware_logic) { proc { |_env| } }
   let(:next_middleware) do
-    lambda do |_env|
+    lambda do |env|
       benchmark_result[:realtime] = expected_realtime
-
+      next_middleware_logic.call(env)
       next_middleware_response
     end
   end
@@ -69,6 +70,28 @@ RSpec.describe Rack::AccessLog do
         before { %w[REMOTE_ADDR HTTP_X_FORWARDED_FOR].each { |env_key| env.delete(env_key) } }
 
         it { expect { after_call }.to log_with logger, :info, hash_including(remote_ip: '-') }
+      end
+    end
+
+    context 'when env values changed during the next middleware call' do
+      let(:next_middleware_logic) do
+        lambda do |env|
+          env[Rack::PATH_INFO] = '/cat'
+          env[Rack::REQUEST_METHOD] = 'NOPE_TRACE'
+          env[Rack::QUERY_STRING] = 'q=no'
+          env['REMOTE_ADDR'] = 'yo mama!'
+        end
+      end
+
+      it { expect { after_call }.to log_with logger, :info, hash_including(request_method: 'GET') }
+      it { expect { after_call }.to log_with logger, :info, hash_including(request_path: '/rspec/test/uri') }
+      it { expect { after_call }.to log_with logger, :info, hash_including(query_string: 'k=v') }
+      it { expect { after_call }.to log_with logger, :info, hash_including(remote_ip: '-') }
+
+      context "and a not tracked path changes it's path_info" do
+        before { middleware_config[:exclude_path] = env[Rack::PATH_INFO] }
+
+        it { expect(logger).to_not receive(:info); after_call }
       end
     end
   end
