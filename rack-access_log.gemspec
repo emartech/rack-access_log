@@ -9,6 +9,7 @@ Gem::Specification.new do |spec|
   spec.version       = Rack::AccessLog::VERSION
   spec.authors       = ['Adam Luzsi']
   spec.email         = ['smart-insight-dev@emarsys.com']
+  spec.license       = 'MIT'
 
   spec.summary       = 'This is a super simple access log middleware that can be used without any framework dependency'
   spec.description   = 'This is a super simple access log middleware that can be used without any framework dependency'
