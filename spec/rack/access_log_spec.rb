@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 RSpec.describe Rack::AccessLog do
   subject(:middleware) { described_class.new(next_middleware, logger, middleware_config) }
 
@@ -55,15 +53,15 @@ RSpec.describe Rack::AccessLog do
 
     describe 'remote_ip' do
       context 'when HTTP_X_FORWARDED_FOR given' do
-        before { env['HTTP_X_FORWARDED_FOR'] = 'forwarded ip addr' }
+        before { env['HTTP_X_FORWARDED_FOR'] = 'forwarded-ip-addr' }
 
-        it { expect { after_call }.to log_with logger, :info, hash_including(remote_ip: 'forwarded ip addr') }
+        it { expect { after_call }.to log_with logger, :info, hash_including(remote_ip: 'forwarded-ip-addr') }
       end
 
       context 'when REMOTE_ADDR given' do
-        before { env['REMOTE_ADDR'] = 'remote ip addr' }
+        before { env['REMOTE_ADDR'] = 'remote-ip-addr' }
 
-        it { expect { after_call }.to log_with logger, :info, hash_including(remote_ip: 'remote ip addr') }
+        it { expect { after_call }.to log_with logger, :info, hash_including(remote_ip: 'remote-ip-addr') }
       end
 
       context 'when nothing specifies remote addr' do
@@ -76,9 +74,9 @@ RSpec.describe Rack::AccessLog do
     context 'when env values changed during the next middleware call' do
       let(:next_middleware_logic) do
         lambda do |env|
-          env[Rack::PATH_INFO] = '/cat'
-          env[Rack::REQUEST_METHOD] = 'NOPE_TRACE'
-          env[Rack::QUERY_STRING] = 'q=no'
+          env['PATH_INFO'] = '/cat'
+          env['REQUEST_METHOD'] = 'NOPE_TRACE'
+          env['QUERY_STRING'] = 'q=no'
           env['REMOTE_ADDR'] = 'yo mama!'
         end
       end
