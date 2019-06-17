@@ -11,7 +11,7 @@ module Rack
     end
 
     def call(env)
-      message_base = create_log_message_base(env)
+      message_base = create_log_message_base(Rack::Request.new(env))
       status, header, body_lines, realtime = next_middleware_call_with_benchmarking(env)
       @logger.info(message_base.merge(statistics_from(status, realtime))) if tracked?(message_base[:request_path])
       [status, header, body_lines]
@@ -23,12 +23,12 @@ module Rack
       !@exclude_paths.include?(path_info)
     end
 
-    def create_log_message_base(env)
+    def create_log_message_base(request)
       {
-        remote_ip: remote_ip_by(env),
-        request_path: env[Rack::PATH_INFO],
-        query_string: env[Rack::QUERY_STRING],
-        request_method: env[Rack::REQUEST_METHOD]
+        remote_ip: request.ip || '-',
+        request_path: request.path_info,
+        query_string: request.query_string,
+        request_method: request.request_method
       }
     end
 
@@ -37,10 +37,6 @@ module Rack
         execution_time_sec: realtime,
         response_status_code: status.to_i
       }
-    end
-
-    def remote_ip_by(env)
-      env['HTTP_X_FORWARDED_FOR'] || env['REMOTE_ADDR'] || '-'
     end
 
     def next_middleware_call_with_benchmarking(env)

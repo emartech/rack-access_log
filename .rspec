@@ -1,2 +1,5 @@
 --format documentation
+--require spec_helper
 --color
+--fail-fast
+--order rand
